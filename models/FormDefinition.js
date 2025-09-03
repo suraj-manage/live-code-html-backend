@@ -1,33 +1,28 @@
 const mongoose = require("mongoose");
 
-// ----- Logic schema (extended with quota conditions) -----
+// ----- Logic schema for conditional branching -----
 const LogicSchema = new mongoose.Schema({
   option: { type: String, required: true },            // option text that triggers
-  showQuestions: { type: [Number], default: [] },      // indices (0-based) of questions to show
-  quotaCheck: {
-    type: [
-      {
-        questionIndex: { type: Number, required: true },  // which question's value to check
-        condition: { type: String, enum: ["=", "<", ">"], required: true },
-        value: { type: Number, required: true },          // number to compare against
-        meetRequirement: { type: Boolean} // whether meeting the condition is required,
-      }
-    ],
-    default: []
-  }
+  showQuestions: { type: [Number], default: [] }       // indices (0-based) of questions to show
+}, { _id: false });
+
+// ----- Quota schema for question-level quotas -----
+const QuotaSchema = new mongoose.Schema({
+  condition: { type: String, enum: ["=", "<", ">"], required: true },
+  value: { type: Number, required: true }
 }, { _id: false });
 
 // ----- Question block schema -----
 const QuestionBlockSchema = new mongoose.Schema({
   question: { type: String, required: true },
-  answer: { type: [String], default: [] },
   type: {
     type: String,
     enum: ["radio", "checkbox"],
     default: "radio"
   },
   options: { type: [String], default: [] },
-  logic: { type: [LogicSchema], default: [] }          // conditional branching rules
+  logic: { type: [LogicSchema], default: [] },         // conditional branching rules
+  quota: { type: QuotaSchema, default: null }          // quota conditions
 }, { _id: false });
 
 // ----- Form definition schema -----
